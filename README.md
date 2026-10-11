@@ -3,24 +3,32 @@
 Full-stack MERN web app for a goods & livestock road-transport company (Irbid branch, Jordan).
 Arabic-first, RTL, gold `#D4AF37` / navy `#0F172A` theme.
 
+Besides the company site and booking form, it hosts a small moderated transport marketplace:
+**عروض البضائع** (`/loads`, merchants post loads) and **سائقين متوفرين** (`/drivers`, drivers announce availability).
+
 ```
 .
 ├── server/                 Express + Mongoose API
 │   ├── server.js
-│   ├── config/db.js
-│   ├── models/Booking.js
-│   ├── controllers/bookingController.js
-│   ├── routes/bookingRoutes.js
-│   ├── middleware/         adminAuth, errorHandler
-│   └── utils/              asyncHandler, ApiError
+│   ├── config/             db.js, marketplace.js (cities, cargo/truck types, statuses, TTL)
+│   ├── models/             Booking.js, Load.js, Driver.js, listingBase.js (shared listing fields)
+│   ├── controllers/        bookingController.js, loadController.js, driverController.js
+│   ├── routes/             bookingRoutes.js, loadRoutes.js, driverRoutes.js
+│   ├── middleware/         adminAuth, errorHandler, rateLimit
+│   ├── utils/              asyncHandler, ApiError, normalize (phone/numbers), listings (expiry, admin handlers)
+│   └── tests/api.e2e.mjs   end-to-end API test (npm test)
 └── client/                 React 18 + Vite + Tailwind CSS
     └── src/
-        ├── App.jsx         routes: /  and  /admin
-        ├── pages/          HomePage, AdminDashboard, NotFound
-        ├── components/     Navbar, Hero, Services, About, BookingForm/Modal/Section,
-        │                   Contact, WhatsAppButton, Footer, Logo …
+        ├── App.jsx         routes: /, /loads, /drivers, /admin
+        ├── pages/          HomePage, LoadsPage, DriversPage, AdminDashboard, NotFound
+        ├── components/     Navbar, Hero, Services, MarketplaceTeaser, About, BookingForm/Modal/Section,
+        │   │               Contact, ContactButtons, FormControls, Modal, PageShell, Footer …
+        │   ├── listings/   LoadForm, LoadCard, DriverForm, DriverCard, ListingParts
+        │   └── admin/      RequestsPanel, ListingsPanel, AdminParts
+        ├── hooks/          useBooking, useForm, useListings, useUrlFilters, useAdminList
         ├── api/client.js   Axios instance + API calls
-        └── constants.js    company info, phone numbers, nav links
+        ├── utils.js        date / price formatting (Jordan time zone)
+        └── constants.js    company info, phone numbers, nav links, marketplace option lists
 ```
 
 ## Quick start
@@ -55,6 +63,16 @@ All responses use `{ success, message?, data?, meta?, errors? }`.
 | `POST` | `/api/v1/requests` | Public (rate-limited 10 / 15 min / IP) | Create a transport request |
 | `GET` | `/api/v1/requests?status=&serviceType=&page=&limit=` | Admin | List requests (newest first) + per-status counts |
 | `PATCH` | `/api/v1/requests/:id` | Admin | Update `status` |
+| `GET` | `/api/v1/loads?cargoType=&from=&to=&page=&limit=` | Public | Approved, non-expired loads |
+| `POST` | `/api/v1/loads` | Public (rate-limited) | Post a load — saved as `Pending` |
+| `GET` | `/api/v1/loads/admin?status=&cargoType=&page=&limit=` | Admin | All loads + per-status counts |
+| `PATCH` | `/api/v1/loads/:id` | Admin | Set `status` (`Approved`, `Rejected`, …) |
+| `DELETE` | `/api/v1/loads/:id` | Admin | Delete a load |
+| `GET` | `/api/v1/drivers?truckType=&city=&minLength=&page=&limit=` | Public | Approved, non-expired drivers |
+| `POST` | `/api/v1/drivers` | Public (rate-limited) | Post availability — saved as `Pending` |
+| `GET` | `/api/v1/drivers/admin?status=&truckType=&page=&limit=` | Admin | All drivers + per-status counts |
+| `PATCH` | `/api/v1/drivers/:id` | Admin | Set `status` |
+| `DELETE` | `/api/v1/drivers/:id` | Admin | Delete a driver listing |
 | `GET` | `/api/v1/health` | Public | Health check |
 
 Admin endpoints require the header `x-admin-token: <ADMIN_TOKEN>` (or `Authorization: Bearer <ADMIN_TOKEN>`).
@@ -81,13 +99,77 @@ curl -X PATCH http://localhost:5000/api/v1/requests/<id> \
 | `status` | String | `Pending` (default) \| `In-Progress` \| `Completed` — cannot be set from the public form |
 | `createdAt`, `updatedAt` | Date | automatic |
 
+## Marketplace listings
+
+### Rules
+
+- **Moderation.** Every new load / driver listing is saved as `Pending` and is invisible to the public
+  until an admin approves it. Statuses: `Pending`, `Approved`, `Rejected`, `Expired`.
+- **Expiry.** A listing expires 14 days after it was posted, or at the end of its pickup / available-from
+  day (Jordan time, UTC+3) — whichever comes first. The date itself must be between today and 14 days ahead.
+  Public lists filter on `expiresAt`, so an expired listing disappears immediately; the admin list marks
+  such listings `Expired` when it loads. An expired listing cannot be re-approved.
+- **Phone privacy.** Public `GET` endpoints only ever return `Approved`, non-expired listings, with a
+  whitelisted set of fields. The public `POST` response returns only `{ _id, status, expiresAt }`, and
+  there is no public "get by id" endpoint, so phone numbers of pending or rejected listings are never exposed.
+- **Validation.** Same conventions as bookings: Arabic error messages per field in `errors`,
+  Jordanian mobiles normalised to `07[789]XXXXXXX`, Arabic-Indic digits accepted in numbers,
+  query-string filters must match the fixed option lists (anything else → `400`).
+- **Option lists** (cities in Jordan + neighbouring countries, cargo / animal / truck types) live in
+  `server/config/marketplace.js` and are mirrored in `client/src/constants.js` — update both together.
+
+### Load (`عروض البضائع`)
+
+| Field | Notes |
+|---|---|
+| `merchantName`, `phone` | required |
+| `cargoType` | `بضائع` \| `مواشي` |
+| `cargoDescription` | required, ≤ 500 chars |
+| `animalType`, `animalCount` | required for `مواشي` (`أغنام`, `ماعز`, `أبقار`, `إبل`, `خيول`, `أخرى`; integer 1–10000) |
+| `approxWeightTons` | optional, 0.1–100 |
+| `fromCity`, `toCity` | from the location list |
+| `pickupDate` | `YYYY-MM-DD`, today … today + 14 |
+| `price`, `negotiable` | optional JOD price (1–100000) + "قابل للتفاوض" flag |
+| `notes` | optional |
+
+### Driver (`سائقين متوفرين`)
+
+| Field | Notes |
+|---|---|
+| `driverName`, `phone` | required |
+| `truckType` | `براد`, `قلاب`, `مسطح/سطحة`, `ستارة`, `صندوق مغلق`, `ناقلة مواشي`, `تنك`, `أخرى` |
+| `truckTypeOther` | required when `truckType` is `أخرى` |
+| `trailerLengthM` | required, 2–25 m |
+| `maxLoadTons` | required, 0.5–100 t |
+| `currentCity` | from the location list |
+| `availableFrom` | `YYYY-MM-DD`, today … today + 14 |
+| `preferredRoutes` | optional free text |
+| `price`, `negotiable`, `notes` | as for loads |
+
 ## Admin dashboard
 
-Open `/admin` and enter the `ADMIN_TOKEN`. Filter by status, see counts, call customers directly,
-and change each request's status. The token is kept in `sessionStorage` for that browser tab only.
+Open `/admin` and enter the `ADMIN_TOKEN`. Three tabs:
+
+- **طلبات النقل** — booking requests: filter by status, call customers, change status.
+- **الحمولات** / **السائقين** — marketplace listings: counts per status (opens on *Pending*), filter by
+  cargo / truck type, approve, reject or delete. The tab badges show how many listings await review.
+
+The token is kept in `sessionStorage` for that browser tab only.
 
 > The shared-token guard is intentionally simple. For multiple staff accounts, replace
 > `server/middleware/adminAuth.js` with real user auth (e.g. JWT + hashed passwords).
+
+## Tests
+
+`npm test` runs `server/tests/api.e2e.mjs`: it starts the real server against MongoDB and checks
+validation, phone normalisation, admin auth, moderation, phone privacy, filters, expiry and rate limiting
+for bookings, loads and drivers.
+
+```bash
+TEST_MONGO_URI=mongodb://127.0.0.1:27017/durrat_test npm test
+```
+
+The test **drops that database** before and after running, so it refuses any database name without `test`.
 
 ## Customising
 

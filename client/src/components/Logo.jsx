@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { COMPANY } from '../constants';
 
 export function LogoMark({ className = 'h-11 w-11' }) {
@@ -23,7 +24,7 @@ export function LogoMark({ className = 'h-11 w-11' }) {
 
 export default function Logo({ light = false }) {
   return (
-    <a href="#home" className="flex items-center gap-2.5" aria-label={COMPANY.name}>
+    <Link to="/" className="flex items-center gap-2.5" aria-label={COMPANY.name}>
       <LogoMark className={`h-11 w-11 ${light ? 'text-white' : 'text-navy'}`} />
       <span className="leading-tight">
         <span className={`block font-display text-lg font-black sm:text-xl ${light ? 'text-white' : 'text-navy'}`}>
@@ -31,6 +32,6 @@ export default function Logo({ light = false }) {
         </span>
         <span className="block text-[11px] font-semibold text-gold">{COMPANY.tagline}</span>
       </span>
-    </a>
+    </Link>
   );
 }

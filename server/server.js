@@ -8,6 +8,8 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import connectDB from './config/db.js';
 import bookingRoutes from './routes/bookingRoutes.js';
+import loadRoutes from './routes/loadRoutes.js';
+import driverRoutes from './routes/driverRoutes.js';
 import { notFound, errorHandler } from './middleware/errorHandler.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -28,6 +30,8 @@ if (!isProd) app.use(morgan('dev'));
 
 app.get('/api/v1/health', (_req, res) => res.json({ success: true, status: 'ok' }));
 app.use('/api/v1/requests', bookingRoutes);
+app.use('/api/v1/loads', loadRoutes);
+app.use('/api/v1/drivers', driverRoutes);
 app.use('/api', notFound);
 
 // In production, serve the built React app from ../client/dist.

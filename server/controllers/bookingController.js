@@ -1,18 +1,7 @@
 import mongoose from 'mongoose';
 import Booking, { SERVICE_TYPES, STATUSES } from '../models/Booking.js';
 import ApiError from '../utils/ApiError.js';
-
-const str = (v) => (typeof v === 'string' || typeof v === 'number' ? String(v).trim() : '');
-
-const normalizePhone = (raw = '') => {
-  let p = String(raw).replace(/[\s\-()]/g, '');
-  // Convert Arabic-Indic digits (٠-٩) to Latin digits
-  p = p.replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
-  if (p.startsWith('+962')) p = '0' + p.slice(4);
-  else if (p.startsWith('00962')) p = '0' + p.slice(5);
-  else if (p.startsWith('962')) p = '0' + p.slice(3);
-  return p;
-};
+import { normalizePhone, str } from '../utils/normalize.js';
 
 /**
  * @route  POST /api/v1/requests

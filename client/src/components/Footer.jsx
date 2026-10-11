@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { COMPANY, NAV_LINKS, PHONES } from '../constants';
 import Logo from './Logo';
 import PhoneNumber from './PhoneNumber';
@@ -15,8 +16,8 @@ export default function Footer() {
           <h3 className="font-display text-lg font-black text-white">روابط سريعة</h3>
           <ul className="mt-4 grid grid-cols-2 gap-2">
             {NAV_LINKS.map((l) => (
-              <li key={l.href}>
-                <a href={l.href} className="hover:text-gold">{l.label}</a>
+              <li key={l.to}>
+                <Link to={l.to} className="hover:text-gold">{l.label}</Link>
               </li>
             ))}
           </ul>

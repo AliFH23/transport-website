@@ -1,37 +1,20 @@
 import { useEffect, useState } from 'react';
 import { CheckCircle2, Loader2, Send } from 'lucide-react';
+import { Field, PHONE_ERROR, isJoMobile } from './FormControls';
 import { createRequest, getErrorMessage } from '../api/client';
 import { SERVICE_TYPES } from '../constants';
 
 const EMPTY = { customerName: '', phone: '', serviceType: '', pickupLocation: '', destination: '', notes: '' };
 
-const PHONE_RE = /^(?:\+?962|00962|0)?7[789]\d{7}$/;
-
 const validate = (v) => {
   const e = {};
   if (v.customerName.trim().length < 2) e.customerName = 'يرجى إدخال الاسم';
-  if (!PHONE_RE.test(v.phone.replace(/[\s-]/g, ''))) e.phone = 'رقم أردني غير صحيح — مثال: 0795849835';
+  if (!isJoMobile(v.phone)) e.phone = PHONE_ERROR;
   if (!SERVICE_TYPES.includes(v.serviceType)) e.serviceType = 'اختر نوع الخدمة';
   if (!v.pickupLocation.trim()) e.pickupLocation = 'يرجى تحديد موقع التحميل';
   if (!v.destination.trim()) e.destination = 'يرجى تحديد الوجهة';
   return e;
 };
-
-function Field({ id, label, error, children }) {
-  return (
-    <div>
-      <label htmlFor={id} className="label">
-        {label}
-      </label>
-      {children}
-      {error && (
-        <p id={`${id}-error`} className="mt-1 text-sm font-semibold text-red-600">
-          {error}
-        </p>
-      )}
-    </div>
-  );
-}
 
 export default function BookingForm({ presetService = '', onSuccess, idPrefix = 'bf' }) {
   const [values, setValues] = useState({ ...EMPTY, serviceType: presetService });

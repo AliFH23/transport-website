@@ -23,3 +23,20 @@ export const updateRequestStatus = (token, id, status) =>
   api.patch(`/requests/${id}`, { status }, adminHeaders(token)).then((r) => r.data);
 
 export default api;
+
+// ---------- Marketplace listings (kind = 'loads' | 'drivers') ----------
+
+// Drop empty filter values so they don't reach the query string.
+const clean = (params) => Object.fromEntries(Object.entries(params).filter(([, v]) => v !== '' && v != null));
+
+export const fetchListings = (kind, params = {}) => api.get(`/${kind}`, { params: clean(params) }).then((r) => r.data);
+
+export const createListing = (kind, payload) => api.post(`/${kind}`, payload).then((r) => r.data);
+
+export const fetchAdminListings = (token, kind, params = {}) =>
+  api.get(`/${kind}/admin`, { ...adminHeaders(token), params: clean(params) }).then((r) => r.data);
+
+export const updateListingStatus = (token, kind, id, status) =>
+  api.patch(`/${kind}/${id}`, { status }, adminHeaders(token)).then((r) => r.data);
+
+export const deleteListing = (token, kind, id) => api.delete(`/${kind}/${id}`, adminHeaders(token)).then((r) => r.data);
