@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+  }
+  body {
+    @apply font-sans;
+  }
+  /* Numbers & phone strings inside RTL text */
+  .ltr-nums {
+    direction: ltr;
+    unicode-bidi: isolate;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  .container-x {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 font-bold transition duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  .btn-gold {
+    @apply btn bg-gold-gradient text-navy shadow-gold hover:brightness-110 active:scale-[0.98];
+  }
+  .btn-outline {
+    @apply btn border border-gold/60 text-gold hover:bg-gold hover:text-navy;
+  }
+  .btn-dark {
+    @apply btn bg-navy text-white hover:bg-navy-800;
+  }
+  .text-gold-gradient {
+    @apply bg-gold-gradient bg-clip-text text-transparent;
+  }
+  .section-title {
+    @apply font-display text-3xl font-black text-navy sm:text-4xl;
+  }
+  .gold-line {
+    @apply mx-auto mt-4 h-1 w-24 rounded-full bg-gold-gradient;
+  }
+  .input {
+    @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-navy placeholder:text-slate-400 transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-bold text-navy-800;
+  }
+  .road-dash {
+    background-image: linear-gradient(90deg, #D4AF37 50%, transparent 50%);
+    background-size: 80px 4px;
+  }
+}
