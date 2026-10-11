@@ -150,19 +150,13 @@ curl -X PATCH http://localhost:5000/api/v1/requests/<id> \
 
 ### Opening it
 
-The public site has no visible link to the dashboard. Use the **logo in the top navbar**:
+Click the small, faded **lock icon** at the far end of the navbar (title / label "دخول الإدارة").
+It sits after the "اطلب نقلة" button on desktop and next to the menu button on mobile; it brightens on hover.
+You can also type `/admin` directly — the `ADMIN_TOKEN` is what protects the dashboard, not the link.
 
-| Device | Gesture |
-|---|---|
-| Desktop | Click the logo **5 times within 3 seconds** |
-| Phone / tablet | **Press and hold** the logo for about **2 seconds** (5 quick taps also work) |
-
-A normal single click/tap on the logo still goes to the home page. The footer logo has no shortcut.
-You can also type `/admin` directly — the URL is hidden, not secret; the `ADMIN_TOKEN` is what protects it.
-
-If you already logged in from that browser tab (token saved in `sessionStorage`), the shortcut opens the
+If you already logged in from that browser tab (token saved in `sessionStorage`), the icon opens the
 dashboard directly; otherwise — or if the saved token is no longer valid — you see the login screen.
-The gesture lives in `client/src/hooks/useAdminShortcut.js` (count, time window and hold time are constants at the top).
+The icon is the `AdminLink` component in `client/src/components/Navbar.jsx`.
 
 ### Using it
 

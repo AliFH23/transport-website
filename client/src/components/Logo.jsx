@@ -22,10 +22,9 @@ export function LogoMark({ className = 'h-11 w-11' }) {
   );
 }
 
-// `linkProps` lets the navbar attach extra handlers (e.g. the hidden admin shortcut).
-export default function Logo({ light = false, linkProps }) {
+export default function Logo({ light = false }) {
   return (
-    <Link to="/" className="flex select-none items-center gap-2.5" aria-label={COMPANY.name} draggable={false} {...linkProps}>
+    <Link to="/" className="flex items-center gap-2.5" aria-label={COMPANY.name}>
       <LogoMark className={`h-11 w-11 ${light ? 'text-white' : 'text-navy'}`} />
       <span className="leading-tight">
         <span className={`block font-display text-lg font-black sm:text-xl ${light ? 'text-white' : 'text-navy'}`}>

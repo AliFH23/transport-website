@@ -1,21 +1,34 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, Phone, X } from 'lucide-react';
+import { Lock, Menu, Phone, X } from 'lucide-react';
 import Logo from './Logo';
 import PhoneNumber from './PhoneNumber';
 import { NAV_LINKS, PRIMARY_PHONE } from '../constants';
 import { useBooking } from '../hooks/useBooking';
-import useAdminShortcut from '../hooks/useAdminShortcut';
 
 // Route links (/loads, /drivers) are highlighted on their own page; section links never are.
 const isActive = (to, pathname) => !to.includes('#') && to !== '/' && pathname.startsWith(to);
+
+// Deliberately low-key entry to the admin dashboard. /admin shows the login screen,
+// or the dashboard straight away when a valid token is already saved in this tab.
+function AdminLink() {
+  return (
+    <Link
+      to="/admin"
+      title="دخول الإدارة"
+      aria-label="دخول الإدارة"
+      className="rounded-md p-1.5 text-slate-400 opacity-40 transition hover:text-gold hover:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/60"
+    >
+      <Lock className="h-4 w-4" aria-hidden="true" />
+    </Link>
+  );
+}
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const { openBooking } = useBooking();
   const { pathname } = useLocation();
-  const adminShortcut = useAdminShortcut();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -32,8 +45,8 @@ export default function Navbar() {
         scrolled || menuOpen ? 'bg-navy/95 shadow-lg backdrop-blur' : 'bg-transparent'
       }`}
     >
-      <nav className="container-x flex h-20 items-center justify-between gap-4">
-        <Logo light linkProps={adminShortcut} />
+      <nav className="container-x flex h-20 items-center justify-between gap-2 sm:gap-4">
+        <Logo light />
 
         <ul className="hidden items-center gap-0.5 xl:flex">
           {NAV_LINKS.map((l) => (
@@ -61,9 +74,10 @@ export default function Navbar() {
           <button type="button" onClick={() => openBooking()} className="btn-gold px-4 py-2 text-sm">
             اطلب نقلة
           </button>
+          <AdminLink />
         </div>
 
-        <div className="flex items-center gap-2 xl:hidden">
+        <div className="flex items-center gap-1.5 xl:hidden">
           <a href={PRIMARY_PHONE.tel} className="btn-gold h-11 w-11 p-0" aria-label="اتصل بنا">
             <Phone className="h-5 w-5" />
           </a>
@@ -76,6 +90,7 @@ export default function Navbar() {
           >
             {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
+          <AdminLink />
         </div>
       </nav>
 
