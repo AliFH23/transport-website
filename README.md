@@ -148,7 +148,25 @@ curl -X PATCH http://localhost:5000/api/v1/requests/<id> \
 
 ## Admin dashboard
 
-Open `/admin` and enter the `ADMIN_TOKEN`. Three tabs:
+### Opening it
+
+The public site has no visible link to the dashboard. Use the **logo in the top navbar**:
+
+| Device | Gesture |
+|---|---|
+| Desktop | Click the logo **5 times within 3 seconds** |
+| Phone / tablet | **Press and hold** the logo for about **2 seconds** (5 quick taps also work) |
+
+A normal single click/tap on the logo still goes to the home page. The footer logo has no shortcut.
+You can also type `/admin` directly — the URL is hidden, not secret; the `ADMIN_TOKEN` is what protects it.
+
+If you already logged in from that browser tab (token saved in `sessionStorage`), the shortcut opens the
+dashboard directly; otherwise — or if the saved token is no longer valid — you see the login screen.
+The gesture lives in `client/src/hooks/useAdminShortcut.js` (count, time window and hold time are constants at the top).
+
+### Using it
+
+Enter the `ADMIN_TOKEN`. Three tabs:
 
 - **طلبات النقل** — booking requests: filter by status, call customers, change status.
 - **الحمولات** / **السائقين** — marketplace listings: counts per status (opens on *Pending*), filter by

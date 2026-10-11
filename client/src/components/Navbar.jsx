@@ -5,6 +5,7 @@ import Logo from './Logo';
 import PhoneNumber from './PhoneNumber';
 import { NAV_LINKS, PRIMARY_PHONE } from '../constants';
 import { useBooking } from '../hooks/useBooking';
+import useAdminShortcut from '../hooks/useAdminShortcut';
 
 // Route links (/loads, /drivers) are highlighted on their own page; section links never are.
 const isActive = (to, pathname) => !to.includes('#') && to !== '/' && pathname.startsWith(to);
@@ -14,6 +15,7 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const { openBooking } = useBooking();
   const { pathname } = useLocation();
+  const adminShortcut = useAdminShortcut();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -31,7 +33,7 @@ export default function Navbar() {
       }`}
     >
       <nav className="container-x flex h-20 items-center justify-between gap-4">
-        <Logo light />
+        <Logo light linkProps={adminShortcut} />
 
         <ul className="hidden items-center gap-0.5 xl:flex">
           {NAV_LINKS.map((l) => (
